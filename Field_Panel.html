@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Video Player</title>
+    <style>
+        *{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:#111;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.player{
+    width:900px;
+    max-width:95%;
+    background:#222;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+
+video{
+    width:100%;
+    display:block;
+    height: 500px;
+}
+
+.controls{
+
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+
+    padding:15px;
+    background:#181818;
+}
+
+button{
+
+    border:none;
+    background:#0d6efd;
+    color:white;
+    padding:10px 15px;
+    cursor:pointer;
+    border-radius:6px;
+    transition:.3s;
+}
+
+button:hover{
+
+    background:#084298;
+}
+
+#progress{
+
+    flex:1;
+}
+
+input[type=range]{
+
+    cursor:pointer;
+}
+
+select{
+
+    padding:8px;
+    border-radius:5px;
+}
+
+span{
+
+    color:white;
+    min-width:120px;
+    text-align:center;
+}
+
+@media(max-width:700px){
+
+.controls{
+
+    justify-content:center;
+}
+
+span{
+
+    width:100%;
+}
+}
+    </style>
+</head>
+<body>
+
+<div class="player">
+
+    <video id="video">
+        <source src="Field_panel.mp4" type="video/mp4">
+        Your browser does not support video.
+    </video>
+
+    <div class="controls">
+
+        <button id="play">▶</button>
+        <button id="stop">■</button>
+
+        <button id="back">⏪ 10s</button>
+        <button id="forward">10s ⏩</button>
+
+        <button id="mute">🔊</button>
+
+        <input
+            type="range"
+            id="volume"
+            min="0"
+            max="1"
+            step="0.1"
+            value="1"
+        >
+
+        <span id="time">00:00 / 00:00</span>
+
+        <input
+            type="range"
+            id="progress"
+            min="0"
+            max="100"
+            value="0"
+        >
+
+        <select id="speed">
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+        </select>
+
+        <button id="pip">📺</button>
+
+        <button id="fullscreen">⛶</button>
+
+    </div>
+
+</div>
+
+<script > const video = document.getElementById("video");
+
+    const play = document.getElementById("play");
+    const stop = document.getElementById("stop");
+    const back = document.getElementById("back");
+    const forward = document.getElementById("forward");
+    const mute = document.getElementById("mute");
+    
+    const progress = document.getElementById("progress");
+    const volume = document.getElementById("volume");
+    
+    const speed = document.getElementById("speed");
+    const fullscreen = document.getElementById("fullscreen");
+    const pip = document.getElementById("pip");
+    
+    const time = document.getElementById("time");
+    
+    play.onclick = () => {
+    
+        if(video.paused){
+    
+            video.play();
+            play.innerHTML="⏸";
+    
+        }else{
+    
+            video.pause();
+            play.innerHTML="▶";
+        }
+    };
+    
+    stop.onclick = ()=>{
+    
+        video.pause();
+        video.currentTime=0;
+        play.innerHTML="▶";
+    };
+    
+    back.onclick = ()=>{
+    
+        video.currentTime-=10;
+    };
+    
+    forward.onclick = ()=>{
+    
+        video.currentTime+=10;
+    };
+    
+    mute.onclick = ()=>{
+    
+        video.muted=!video.muted;
+    
+        mute.innerHTML=video.muted?"🔇":"🔊";
+    };
+    
+    volume.oninput=()=>{
+    
+        video.volume=volume.value;
+    };
+    
+    speed.onchange=()=>{
+    
+        video.playbackRate=speed.value;
+    };
+    
+    video.addEventListener("timeupdate",()=>{
+    
+        progress.value=(video.currentTime/video.duration)*100;
+    
+        updateTime();
+    });
+    
+    progress.oninput=()=>{
+    
+        video.currentTime=(progress.value/100)*video.duration;
+    };
+    
+    fullscreen.onclick=()=>{
+    
+        if(video.requestFullscreen){
+    
+            video.requestFullscreen();
+        }
+    };
+    
+    pip.onclick=async()=>{
+    
+        if(document.pictureInPictureEnabled){
+    
+            await video.requestPictureInPicture();
+        }
+    };
+    
+    function format(seconds){
+    
+        let m=Math.floor(seconds/60);
+    
+        let s=Math.floor(seconds%60);
+    
+        if(s<10)s="0"+s;
+    
+        return `${m}:${s}`;
+    }
+    
+    function updateTime(){
+    
+        if(video.duration){
+    
+            time.innerHTML=
+            format(video.currentTime)+
+            " / "+
+            format(video.duration);
+        }
+    }
+    
+    document.addEventListener("keydown",(e)=>{
+    
+        switch(e.key){
+    
+            case " ":
+    
+                e.preventDefault();
+                play.click();
+                break;
+    
+            case "ArrowRight":
+    
+                video.currentTime+=10;
+                break;
+    
+            case "ArrowLeft":
+    
+                video.currentTime-=10;
+                break;
+    
+            case "f":
+    
+            case "F":
+    
+                fullscreen.click();
+                break;
+    
+            case "m":
+    
+            case "M":
+    
+                mute.click();
+                break;
+        }
+    });</script>
+
+</body>
+</html>
